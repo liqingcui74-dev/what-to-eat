@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+  <meta name="theme-color" content="#ff8e69" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="今天吃什么" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <title>今天吃什么？</title>
+  <style>
+    *{box-sizing:border-box}
+    html{background:#fffaf5}
+    body{
+      margin:0;
+      font-family: Inter, "PingFang SC","Microsoft YaHei",sans-serif;
+      background:#fffaf5;
+      color:#2f2a27;
+      min-height:100vh;
+      min-height:100dvh;
+      overscroll-behavior:none;
+    }
+    button{font:inherit;-webkit-tap-highlight-color:transparent}
+    .app{
+      width:min(100%,430px);
+      min-height:100vh;
+      min-height:100dvh;
+      margin:0 auto;
+      padding:calc(18px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom));
+    }
+    .top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}
+    .title h1{font-size:27px;margin:0 0 6px;letter-spacing:-.5px}
+    .title p{margin:0;color:#8f8178;font-size:14px;line-height:1.5}
+    .emoji{width:54px;height:54px;border-radius:18px;display:grid;place-items:center;font-size:29px;background:#fff;border:1px solid #f1e5db;box-shadow:0 8px 24px rgba(120,90,60,.08)}
+    .hero{background:linear-gradient(135deg,#ff8e69,#ffb35f);color:white;border-radius:24px;padding:20px;box-shadow:0 14px 34px rgba(230,120,70,.22);margin-bottom:18px}
+    .hero .small{font-size:13px;opacity:.9;margin-bottom:7px}
+    .hero h2{font-size:24px;margin:0 0 6px}
+    .hero p{font-size:13px;opacity:.92;margin:0 0 16px}
+    .hero button{width:100%;border:0;border-radius:14px;padding:14px;background:white;color:#e56f42;font-weight:700;font-size:15px;cursor:pointer}
+    .tabs{display:flex;gap:8px;margin:4px 0 14px}
+    .tab{flex:1;border:1px solid #eadfd5;background:#fff;padding:11px 8px;border-radius:14px;color:#806f64;font-weight:600;cursor:pointer}
+    .tab.active{background:#2f2a27;color:#fff;border-color:#2f2a27}
+    .card{background:#fff;border:1px solid #efe4dc;border-radius:22px;padding:18px;box-shadow:0 10px 28px rgba(78,55,39,.06)}
+    .meal-label{font-size:13px;color:#9a8b82;margin-bottom:8px}
+    .dish{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px}
+    .dish h3{font-size:23px;margin:0 0 5px}
+    .dish p{margin:0;font-size:13px;color:#8e8178}
+    .dish-emoji{width:74px;height:74px;border-radius:20px;background:#fff4ec;display:grid;place-items:center;font-size:37px;flex:0 0 auto}
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .btn{border:0;border-radius:14px;padding:13px;font-size:14px;font-weight:700;cursor:pointer}
+    .btn.primary{background:#2f2a27;color:#fff}
+    .btn.secondary{background:#fff4ec;color:#d16d48}
+    .section-title{margin:22px 2px 10px;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:space-between}
+    .tiny{font-size:12px;color:#9b8c82;font-weight:500}
+    .history{display:grid;gap:9px}
+    .history-item{background:#fff;border:1px solid #efe4dc;border-radius:16px;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer}
+    .history-item b{font-size:14px}
+    .history-item span{font-size:12px;color:#9c8e84}
+    .empty{color:#a3978e;font-size:13px;padding:10px 2px}
+    .tip{margin-top:18px;background:#fff4ec;border-radius:18px;padding:14px;font-size:13px;color:#866e60;line-height:1.6}
+    .install{
+      margin-top:12px;background:#fff;border:1px dashed #e6d6cb;border-radius:16px;padding:12px 14px;
+      display:none;align-items:center;justify-content:space-between;gap:12px;
+    }
+    .install.show{display:flex}
+    .install b{font-size:13px}
+    .install span{display:block;font-size:11px;color:#9b8c82;margin-top:3px}
+    .install button{border:0;background:#ff8e69;color:#fff;padding:9px 12px;border-radius:10px;font-weight:700}
+    .modal{position:fixed;inset:0;background:rgba(34,28,24,.48);display:none;align-items:flex-end;justify-content:center;padding:0;z-index:50}
+    .modal.show{display:flex}
+    .sheet{width:min(100%,430px);max-height:86vh;overflow:auto;background:#fffaf5;border-radius:26px 26px 0 0;padding:20px 18px calc(30px + env(safe-area-inset-bottom));animation:up .2s ease}
+    @keyframes up{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}
+    .sheet-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .sheet h2{margin:0;font-size:24px}
+    .close{border:0;background:#efe7e1;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer}
+    .tagline{color:#8e8178;font-size:13px;margin:5px 0 18px}
+    .recipe-block{background:#fff;border:1px solid #efe4dc;border-radius:18px;padding:15px;margin-bottom:12px}
+    .recipe-block h4{margin:0 0 10px;font-size:15px}
+    .recipe-block ul,.recipe-block ol{margin:0;padding-left:20px;line-height:1.8;font-size:14px;color:#5f554f}
+    .today-list{display:grid;gap:10px;margin-top:12px}
+    .today-row{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1px solid #efe4dc;padding:13px;border-radius:16px}
+    .today-row span{font-size:12px;color:#9b8d84}.today-row b{font-size:15px}
+    .today-row button{border:0;background:#fff1e8;color:#d16d48;border-radius:10px;padding:8px 10px;font-weight:700}
+    @media (display-mode: standalone){ .install{display:none!important} }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="title">
+      <h1>今天吃什么？</h1>
+      <p>不纠结了，交给随机按钮 🍚</p>
+    </div>
+    <div class="emoji">🥢</div>
+  </div>
+
+  <div class="hero">
+    <div class="small">✨ 懒得想就用这个</div>
+    <h2>一键生成今日三餐</h2>
+    <p>早餐、午餐、晚餐一次安排好，都是家常口味。</p>
+    <button onclick="generateDay()">帮我决定今天吃什么</button>
+  </div>
+
+  <div class="install" id="installBox">
+    <div><b>安装到手机桌面</b><span>以后像 App 一样一键打开</span></div>
+    <button id="installBtn">安装</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-type="breakfast" onclick="switchType('breakfast')">早餐</button>
+    <button class="tab" data-type="lunch" onclick="switchType('lunch')">午餐</button>
+    <button class="tab" data-type="dinner" onclick="switchType('dinner')">晚餐</button>
+  </div>
+
+  <div class="card">
+    <div class="meal-label" id="mealLabel">今天早餐吃：</div>
+    <div class="dish">
+      <div>
+        <h3 id="dishName">番茄鸡蛋面</h3>
+        <p id="dishDesc">快手 · 热乎 · 15分钟</p>
+      </div>
+      <div class="dish-emoji" id="dishEmoji">🍜</div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" onclick="randomDish()">换一个</button>
+      <button class="btn secondary" onclick="openRecipe()">看菜谱</button>
+    </div>
+  </div>
+
+  <div class="section-title"><span>最近抽到</span><span class="tiny">点菜名可看菜谱</span></div>
+  <div class="history" id="history"></div>
+
+  <div class="tip">💡 小规则：同一餐会尽量避开你刚刚抽到过的菜。真不知道吃啥的时候，就不要反悔，第一抽直接吃。</div>
+</div>
+
+<div class="modal" id="recipeModal" onclick="closeOnBg(event)">
+  <div class="sheet">
+    <div class="sheet-top"><h2 id="recipeTitle"></h2><button class="close" onclick="closeRecipe()">×</button></div>
+    <div class="tagline" id="recipeDesc"></div>
+    <div class="recipe-block"><h4>🧺 食材</h4><ul id="ingredients"></ul></div>
+    <div class="recipe-block"><h4>👩🏻‍🍳 做法</h4><ol id="steps"></ol></div>
+  </div>
+</div>
+
+<div class="modal" id="dayModal" onclick="closeDayOnBg(event)">
+  <div class="sheet">
+    <div class="sheet-top"><h2>今日三餐</h2><button class="close" onclick="closeDay()">×</button></div>
+    <div class="tagline">今天就按这个吃，拒绝选择困难。</div>
+    <div class="today-list" id="todayList"></div>
+    <button class="btn primary" style="width:100%;margin-top:14px" onclick="generateDay()">整套换一套</button>
+  </div>
+</div>
+
+<script>
+const data = {
+breakfast: [
+ {name:"番茄鸡蛋面",emoji:"🍜",desc:"快手 · 热乎 · 15分钟",ingredients:["面条 1人份","番茄 1个","鸡蛋 1个","葱花 少许","盐、生抽、香油 适量"],steps:["番茄切块，鸡蛋打散。","锅里少油炒熟鸡蛋盛出，再下番茄炒软出汁。","加一碗水煮开，放面条煮熟。","倒回鸡蛋，加盐、生抽调味，撒葱花和几滴香油。"]},
+ {name:"鸡蛋火腿三明治",emoji:"🥪",desc:"方便 · 顶饱 · 10分钟",ingredients:["吐司 2片","鸡蛋 1个","火腿 2片","生菜 2片","番茄片 2片","沙拉酱 少许"],steps:["鸡蛋煎熟，火腿稍微煎香。","吐司依次铺生菜、番茄、鸡蛋和火腿。","挤少许沙拉酱，盖上另一片吐司，对半切开。"]},
+ {name:"皮蛋瘦肉粥",emoji:"🥣",desc:"暖胃 · 清淡 · 25分钟",ingredients:["大米 50g","瘦肉 50g","皮蛋 1个","姜丝 少许","盐、白胡椒 适量"],steps:["大米洗净加水煮成粥。","瘦肉切丝，用少许盐抓匀；皮蛋切丁。","粥煮稠后加入姜丝、肉丝和皮蛋再煮5分钟。","加盐和白胡椒调味。"]},
+ {name:"葱花鸡蛋饼",emoji:"🥞",desc:"家常 · 香软 · 12分钟",ingredients:["鸡蛋 2个","面粉 50g","清水 80ml","葱花 适量","盐 少许"],steps:["面粉加水搅成顺滑面糊，加入鸡蛋、葱花和盐。","平底锅刷薄油，倒入面糊摊平。","小火煎到两面金黄即可。"]},
+ {name:"燕麦香蕉酸奶杯",emoji:"🍌",desc:"清爽 · 无需开火 · 5分钟",ingredients:["即食燕麦 40g","香蕉 1根","原味酸奶 150g","坚果 少许"],steps:["香蕉切片。","杯中依次放酸奶、燕麦、香蕉。","顶部撒坚果，拌匀即可。"]},
+ {name:"青菜鸡蛋汤面",emoji:"🍲",desc:"清淡 · 省事 · 12分钟",ingredients:["挂面 1把","鸡蛋 1个","青菜 1把","盐、生抽 适量"],steps:["锅中加水煮开，放挂面。","打入鸡蛋或提前煎一个荷包蛋。","面条快熟时放青菜。","用盐和少许生抽调味。"]},
+ {name:"玉米鸡蛋早餐盘",emoji:"🌽",desc:"简单 · 营养 · 15分钟",ingredients:["玉米 1根","鸡蛋 1个","牛奶 1杯","小番茄 适量"],steps:["玉米煮熟或蒸熟。","鸡蛋水煮或煎熟。","搭配牛奶和小番茄一起吃即可。"]},
+ {name:"豆浆油条配鸡蛋",emoji:"🥛",desc:"中式 · 省心 · 5分钟",ingredients:["无糖豆浆 1杯","油条 1根","水煮蛋 1个"],steps:["豆浆加热。","油条复热至酥脆。","搭配一个水煮蛋即可。"]}
+],
+lunch: [
+ {name:"番茄炒蛋盖饭",emoji:"🍅",desc:"下饭 · 家常 · 15分钟",ingredients:["番茄 2个","鸡蛋 2个","米饭 1碗","盐、糖、生抽 适量"],steps:["鸡蛋炒熟盛出。","番茄切块下锅炒软，加少许盐和一点糖。","倒回鸡蛋翻匀，淋少许生抽。","盖在热米饭上即可。"]},
+ {name:"青椒肉丝",emoji:"🫑",desc:"快炒 · 下饭 · 18分钟",ingredients:["猪里脊 150g","青椒 2个","蒜 2瓣","生抽、淀粉、盐 适量"],steps:["肉切丝，加生抽和淀粉抓匀腌10分钟。","青椒切丝，蒜切末。","热锅少油炒肉丝至变色盛出。","炒香蒜末和青椒，倒回肉丝，加盐和生抽翻匀。"]},
+ {name:"土豆烧鸡块",emoji:"🥔",desc:"浓香 · 配饭 · 35分钟",ingredients:["鸡腿肉 250g","土豆 1个","葱姜 适量","生抽、老抽、糖 适量"],steps:["鸡腿切块焯水，土豆切块。","锅里少油炒香葱姜，下鸡块炒至微黄。","加生抽、少许老抽和糖，倒水没过一半。","放土豆焖20分钟，大火收汁。"]},
+ {name:"鱼香肉丝",emoji:"🥢",desc:"酸甜咸香 · 超下饭 · 20分钟",ingredients:["猪里脊 150g","木耳 适量","胡萝卜 半根","青椒 1个","醋、生抽、糖、淀粉 适量"],steps:["肉切丝加淀粉和生抽抓匀。","木耳、胡萝卜、青椒切丝。","调鱼香汁：生抽1勺、醋1.5勺、糖1勺、淀粉半勺、水2勺。","先炒肉丝，再下配菜，倒鱼香汁翻炒收浓。"]},
+ {name:"麻婆豆腐（家常版）",emoji:"🌶️",desc:"麻辣 · 拌饭 · 20分钟",ingredients:["嫩豆腐 1盒","猪肉末 80g","豆瓣酱 1勺","蒜末 少许","花椒粉 少许"],steps:["豆腐切块，用淡盐水焯1分钟。","锅中少油炒香肉末和蒜末，加入豆瓣酱炒出红油。","加半碗水，放豆腐小火煮5分钟。","勾薄芡，撒花椒粉和葱花。"]},
+ {name:"可乐鸡翅",emoji:"🍗",desc:"甜咸 · 零失败 · 30分钟",ingredients:["鸡翅中 8只","可乐 1罐","姜 3片","生抽 2勺","老抽 半勺"],steps:["鸡翅两面划刀，焯水或煎至微黄。","加入姜片、生抽、老抽。","倒可乐没过鸡翅一半以上。","中小火焖20分钟，最后大火收汁。"]},
+ {name:"蒜苔炒肉",emoji:"🥬",desc:"脆香 · 家常 · 18分钟",ingredients:["蒜苔 200g","猪肉 120g","蒜 2瓣","生抽、盐 适量"],steps:["蒜苔切段，猪肉切片。","热锅少油炒肉至变色，加生抽。","放蒜苔大火翻炒至断生。","加盐调味即可。"]},
+ {name:"香菇鸡肉焖饭",emoji:"🍚",desc:"一锅出 · 省事 · 35分钟",ingredients:["大米 1杯","鸡腿肉 200g","香菇 5朵","胡萝卜 半根","生抽、蚝油 适量"],steps:["鸡肉切块，香菇和胡萝卜切丁。","锅中炒香鸡肉和配菜，加生抽、蚝油。","大米洗净放电饭煲，水量比平时略少。","把炒好的料铺在米上，按煮饭键，熟后拌匀。"]},
+ {name:"西红柿炖牛腩",emoji:"🥘",desc:"浓郁 · 暖胃 · 60分钟",ingredients:["牛腩 300g","番茄 2个","土豆 1个","葱姜 适量","盐、生抽 适量"],steps:["牛腩切块焯水。","番茄炒出汁，加入牛腩翻炒。","加热水、葱姜和生抽，小火炖40分钟。","加入土豆再炖15分钟，加盐调味。"]},
+ {name:"家常豆角焖面",emoji:"🍜",desc:"面饭一体 · 35分钟",ingredients:["面条 200g","豆角 200g","五花肉 100g","生抽、老抽、蒜 适量"],steps:["豆角切段，五花肉切片。","炒香肉片和蒜，加豆角翻炒。","加生抽、老抽和热水，水量略低于豆角。","铺上面条，盖盖焖12分钟，最后拌匀。"]}
+],
+dinner: [
+ {name:"清炒西兰花虾仁",emoji:"🥦",desc:"清爽 · 高蛋白 · 18分钟",ingredients:["虾仁 150g","西兰花 1小颗","蒜 2瓣","盐、黑胡椒 适量"],steps:["西兰花切小朵焯水。","虾仁用少许盐和黑胡椒腌5分钟。","锅中少油炒香蒜末和虾仁。","放西兰花大火翻炒，加盐调味。"]},
+ {name:"冬瓜丸子汤",emoji:"🍲",desc:"清淡 · 暖胃 · 30分钟",ingredients:["冬瓜 250g","猪肉馅 180g","姜末 少许","盐、白胡椒、生抽 适量"],steps:["肉馅加姜末、盐、生抽和少许水搅打上劲。","冬瓜去皮切片，锅中加水煮开。","肉馅挤成丸子下锅，煮至浮起。","加入冬瓜煮软，用盐和白胡椒调味。"]},
+ {name:"蚝油生菜 + 蒸蛋",emoji:"🥬",desc:"轻松 · 清淡 · 20分钟",ingredients:["生菜 1颗","鸡蛋 2个","蚝油 1勺","蒜 2瓣","温水 适量"],steps:["鸡蛋加1.5倍温水和少许盐打匀，蒸12分钟。","生菜焯水10秒摆盘。","蒜末炒香，加蚝油和少许水煮成汁。","把料汁淋在生菜上，搭配蒸蛋。"]},
+ {name:"白菜炖豆腐",emoji:"🍲",desc:"家常 · 便宜 · 25分钟",ingredients:["大白菜 250g","老豆腐 1块","蒜 2瓣","盐、生抽 适量"],steps:["豆腐切块煎至两面微黄。","白菜切段，蒜切末。","炒香蒜末，下白菜炒软。","加豆腐和半碗水，生抽调味，炖10分钟。"]},
+ {name:"香煎鸡腿肉配蔬菜",emoji:"🍗",desc:"满足 · 少油 · 25分钟",ingredients:["去骨鸡腿 1只","西葫芦/口蘑 适量","盐、黑胡椒、生抽 适量"],steps:["鸡腿肉擦干，加盐、黑胡椒和少许生抽腌10分钟。","平底锅少油，鸡皮面先煎至金黄。","翻面煎熟，盛出静置。","原锅煎蔬菜，加少许盐，和鸡腿一起装盘。"]},
+ {name:"酸辣土豆丝 + 紫菜蛋花汤",emoji:"🥔",desc:"爽口 · 家常 · 20分钟",ingredients:["土豆 1个","干辣椒 2个","醋 1勺","紫菜 适量","鸡蛋 1个"],steps:["土豆切丝泡水去淀粉。","锅中少油炒香干辣椒，下土豆丝大火快炒，加盐和醋。","另起锅煮水放紫菜。","淋入蛋液，加盐和少许香油。"]},
+ {name:"番茄豆腐菌菇汤",emoji:"🍅",desc:"低负担 · 鲜美 · 20分钟",ingredients:["番茄 1个","嫩豆腐 1盒","金针菇 1把","盐、生抽 适量"],steps:["番茄切块炒软出汁。","加入两碗水煮开。","放豆腐和金针菇煮5分钟。","加盐和少许生抽调味。"]},
+ {name:"照烧鸡腿饭",emoji:"🍱",desc:"香甜 · 满足 · 30分钟",ingredients:["鸡腿 1只","米饭 1碗","生抽 2勺","蜂蜜/糖 1勺","料酒 1勺","西兰花 少许"],steps:["鸡腿去骨，皮面煎至金黄。","加入生抽、料酒、蜂蜜和半碗水。","盖盖焖10分钟后收汁。","切块放在米饭上，配焯熟西兰花。"]},
+ {name:"肉末茄子",emoji:"🍆",desc:"下饭 · 软糯 · 25分钟",ingredients:["茄子 2根","猪肉末 100g","蒜末 适量","生抽、蚝油 适量"],steps:["茄子切条，撒少许盐腌5分钟后挤掉水分。","少油煎软茄子盛出。","炒香肉末和蒜末，加生抽、蚝油。","倒回茄子，加少许水焖5分钟。"]},
+ {name:"丝瓜炒蛋",emoji:"🥚",desc:"清甜 · 快手 · 15分钟",ingredients:["丝瓜 1根","鸡蛋 2个","蒜 1瓣","盐 适量"],steps:["丝瓜去皮切滚刀块，鸡蛋打散。","鸡蛋炒熟盛出。","蒜末爆香，下丝瓜炒软。","倒回鸡蛋，加盐翻匀。"]}
+]};
+
+let type="breakfast";
+let current=data.breakfast[0];
+let history=JSON.parse(localStorage.getItem("mealHistory")||"[]");
+const labels={breakfast:"今天早餐吃：",lunch:"今天午餐吃：",dinner:"今天晚餐吃："};
+
+function switchType(t){
+  type=t;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.type===t));
+  randomDish();
+}
+function randomDish(){
+  const list=data[type];
+  const recentNames=history.slice(0,4).map(x=>x.name);
+  let pool=list.filter(x=>!recentNames.includes(x.name));
+  if(!pool.length) pool=list;
+  current=pool[Math.floor(Math.random()*pool.length)];
+  document.getElementById("mealLabel").textContent=labels[type];
+  document.getElementById("dishName").textContent=current.name;
+  document.getElementById("dishDesc").textContent=current.desc;
+  document.getElementById("dishEmoji").textContent=current.emoji;
+  addHistory(current,type);
+}
+function addHistory(d,t){
+  history=history.filter(x=>!(x.name===d.name&&x.type===t));
+  history.unshift({name:d.name,type:t,emoji:d.emoji});
+  history=history.slice(0,6);
+  localStorage.setItem("mealHistory",JSON.stringify(history));
+  renderHistory();
+}
+function renderHistory(){
+  const box=document.getElementById("history");
+  if(!history.length){box.innerHTML='<div class="empty">还没有记录，先抽一道吧。</div>';return}
+  box.innerHTML=history.map((h,i)=>`<div class="history-item" onclick="openHistory(${i})"><div><b>${h.emoji} ${h.name}</b></div><span>${h.type==="breakfast"?"早餐":h.type==="lunch"?"午餐":"晚餐"} ›</span></div>`).join("");
+}
+function findDish(name,t){return data[t].find(x=>x.name===name)}
+function openHistory(i){
+  const h=history[i],d=findDish(h.name,h.type); if(!d)return;
+  current=d;type=h.type;showRecipe(d);
+}
+function openRecipe(){showRecipe(current)}
+function showRecipe(d){
+  document.getElementById("recipeTitle").textContent=d.name;
+  document.getElementById("recipeDesc").textContent=d.desc;
+  document.getElementById("ingredients").innerHTML=d.ingredients.map(x=>`<li>${x}</li>`).join("");
+  document.getElementById("steps").innerHTML=d.steps.map(x=>`<li>${x}</li>`).join("");
+  document.getElementById("recipeModal").classList.add("show");
+}
+function closeRecipe(){document.getElementById("recipeModal").classList.remove("show")}
+function closeOnBg(e){if(e.target.id==="recipeModal")closeRecipe()}
+function generateDay(){
+  const picks=["breakfast","lunch","dinner"].map(t=>({type:t,dish:data[t][Math.floor(Math.random()*data[t].length)]}));
+  const names={breakfast:"早餐",lunch:"午餐",dinner:"晚餐"};
+  document.getElementById("todayList").innerHTML=picks.map(x=>`<div class="today-row"><div><span>${names[x.type]}</span><br><b>${x.dish.emoji} ${x.dish.name}</b></div><button onclick="showDayRecipe('${x.type}','${x.dish.name.replace(/'/g,"\\'")}')">菜谱</button></div>`).join("");
+  document.getElementById("dayModal").classList.add("show");
+}
+function showDayRecipe(t,name){const d=findDish(name,t);if(d){closeDay();showRecipe(d)}}
+function closeDay(){document.getElementById("dayModal").classList.remove("show")}
+function closeDayOnBg(e){if(e.target.id==="dayModal")closeDay()}
+
+let deferredPrompt=null;
+window.addEventListener("beforeinstallprompt",(e)=>{
+  e.preventDefault();deferredPrompt=e;
+  document.getElementById("installBox").classList.add("show");
+});
+document.getElementById("installBtn").addEventListener("click",async()=>{
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt=null;
+  document.getElementById("installBox").classList.remove("show");
+});
+window.addEventListener("appinstalled",()=>document.getElementById("installBox").classList.remove("show"));
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js"));
+}
+
+renderHistory();
+randomDish();
+</script>
+</body>
+</html>
